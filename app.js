@@ -41,7 +41,9 @@ app.post('/upload', upload.single('video'), async (req, res) => {
 
     // Store the video in GridFS with metadata
     const uploadStream = bucket.openUploadStream('panchayat.mp4', {
-      metadata: { fileSize: req.file.buffer.length },
+      metadata: {    
+        fileSize: req.file.buffer.length,
+        contentType: req.file.mimetype, },
     });
     uploadStream.end(videoStream);
 
@@ -81,33 +83,44 @@ app.get('/video/:videoId', async (req, res) => {
     const bucket = new GridFSBucket(database);
 
     // Find the video file in GridFS
-    const videoStream = bucket.openDownloadStream(new ObjectId(videoId));
+    const videoFile = await bucket.find({ _id: new ObjectId(videoId) }).toArray();
+    if (!videoFile || videoFile.length === 0) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+    
+    const file = videoFile[0];
+    console.log(file);
+
     // Set the response headers for video streaming
-    const {contentType,length} = await getVideoMetadata(videoStream);
-    console.log(response);
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Length', length);
+    res.setHeader('Content-Type', file?.metadata?.contentType);
+    res.setHeader('Content-Length', file?.metadata?.fileSize);
     res.setHeader('Accept-Ranges', 'bytes');
 
     // Check if range headers are present
-    const range = req.headers.Range;
+    const range = req.headers.range;
     if (range) {
       const positions = range.replace(/bytes=/, '').split('-');
       const start = parseInt(positions[0], 10);
-      const end = positions[1] ? parseInt(positions[1], 10) : length - 1;
+      const end = positions[1] ? parseInt(positions[1], 10) : file.length - 1;
       const chunkSize = end - start + 1;
 
-      res.setHeader('Content-Range', `bytes ${start}-${end}/${length}`);
+      res.setHeader('Content-Range', `bytes ${start}-${end}/${file.length}`);
       res.setHeader('Content-Length', chunkSize);
       res.statusCode = 206;
 
-      // Set the stream positions and pipe the video stream in chunks
-      videoStream.start = start;
-      videoStream.end = end;
+      // Create a read stream with the range of bytes
+      const videoStream = bucket.openDownloadStream(new ObjectId(videoId), { start, end });
+
+      // Pipe the video stream in chunks
       videoStream.pipe(res);
     } else {
       // If range headers are not present, stream the entire video
       res.statusCode = 200;
+
+      // Create a read stream for the entire video file
+      const videoStream = bucket.openDownloadStream(new ObjectId(videoId));
+
+      // Pipe the video stream
       videoStream.pipe(res);
     }
   } catch (error) {
@@ -115,6 +128,7 @@ app.get('/video/:videoId', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 
 const getVideoMetadata = async (stream) => {
