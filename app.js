@@ -65,12 +65,6 @@ app.post('/upload', upload.single('video'), async (req, res) => {
 });
 
 
-
-
-// add after app.get('/video/:id/data', ...) route
-// app.get('/videos', (req, res) => res.json(videos));
-
-
 app.get('/video/:videoId', async (req, res) => {
   try {
     const videoId = req.params.videoId;
@@ -95,9 +89,10 @@ app.get('/video/:videoId', async (req, res) => {
     res.setHeader('Content-Type', file?.metadata?.contentType);
     res.setHeader('Content-Length', file?.metadata?.fileSize);
     res.setHeader('Accept-Ranges', 'bytes');
-
+    console.log('headers');
     // Check if range headers are present
     const range = req.headers.range;
+    console.log(range);
     if (range) {
       const positions = range.replace(/bytes=/, '').split('-');
       const start = parseInt(positions[0], 10);
@@ -129,34 +124,6 @@ app.get('/video/:videoId', async (req, res) => {
   }
 });
 
-
-
-const getVideoMetadata = async (stream) => {
-  return new Promise((resolve, reject) => {
-    stream.on('metadata', (metadata) => {
-      const { contentType, length } = metadata;
-      resolve({ contentType, length });
-    });
-
-    stream.on('error', (err) => {
-      reject(err);
-    });
-
-    // If the 'end' event is not triggered within a certain time,
-    // reject the promise with a timeout error
-    const timeout = setTimeout(() => {
-      reject(new Error('Timeout while fetching video metadata'));
-    }, 5000); // Adjust the timeout value as needed
-
-    // Remove the timeout listener once the 'metadata' or 'error' event is triggered
-    stream.on('metadata', () => {
-      clearTimeout(timeout);
-    });
-    stream.on('error', () => {
-      clearTimeout(timeout);
-    });
-  });
-};
 
 app.listen(4000, () => {
     console.log('Listening on port 4000!')
