@@ -1,14 +1,11 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const cors = require('cors')
-const multer = require('multer')
-const Grid = require('gridfs-stream');
-const mongoose = require('mongoose')
-const { MongoClient,ObjectId } = require('mongodb')
-const { GridFSBucket } = require('mongodb')
-// mongodb+srv://adarsh:adarsh@cluster0.o0dnsga.mongodb.net/video-app
-const PORT = process.env.PORT  || 4000
+const cors = require('cors');
+const multer = require('multer');
+const { MongoClient, ObjectId } = require('mongodb');
+const { GridFSBucket } = require('mongodb');
+
+const app = express();
+const PORT = process.env.PORT || 4000;
 const url = 'mongodb+srv://adarsh:adarsh@cluster0.o0dnsga.mongodb.net/video-app';
 
 // Create a new MongoClient
@@ -17,76 +14,77 @@ const client = new MongoClient(url);
 // Set up multer for handling multipart/form-data (file upload)
 const upload = multer();
 
-const app = express();
+app.use(cors());
 
-app.use(cors())
-
-mongoose.connect('mongodb+srv://adarsh:adarsh@cluster0.o0dnsga.mongodb.net/video-app', { useNewUrlParser: true });
-
-// Define a route for video upload
-app.post('/upload', upload.single('video'), async (req, res) => {
+// Connect to MongoDB Atlas
+async function connectToDatabase() {
   try {
-    // Connect to the MongoDB cluster
     await client.connect();
     console.log('Connected to MongoDB Atlas cluster');
+  } catch (error) {
+    console.error('Error connecting to MongoDB Atlas cluster:', error);
+    process.exit(1);
+  }
+}
 
-    // Access the database
+// Upload video endpoint
+app.post('/upload', upload.single('video'), async (req, res) => {
+  await connectToDatabase();
+
+  try {
     const db = client.db();
-
-    // Create a new GridFSBucket instance
     const bucket = new GridFSBucket(db);
 
-    // Open the uploaded video file from the request
     const videoStream = req.file.buffer;
 
-    // Store the video in GridFS with metadata
     const uploadStream = bucket.openUploadStream('panchayat.mp4', {
-      metadata: {    
+      metadata: {
         fileSize: req.file.buffer.length,
-        contentType: req.file.mimetype, },
+        contentType: req.file.mimetype,
+      },
     });
+
     uploadStream.end(videoStream);
 
     uploadStream.on('finish', () => {
       console.log('Video stored in GridFS');
-      client.close();
       res.send('Video uploaded successfully');
     });
 
     uploadStream.on('error', (error) => {
       console.error('Error storing video in GridFS:', error);
-      client.close();
       res.status(500).send('Error storing video');
     });
   } catch (error) {
-    console.error('Error connecting to MongoDB Atlas cluster:', error);
-    res.status(500).send('Error connecting to MongoDB Atlas');
+    console.error('Error uploading video:', error);
+    res.status(500).send('Error uploading video');
   }
 });
 
-
+// Stream video endpoint
 app.get('/video/:videoId', async (req, res) => {
+  await connectToDatabase();
+
   try {
     const videoId = req.params.videoId;
-    // Connect to MongoDB Atlas
-    await client.connect();
-    // Access the database and GridFS bucket
-    const database = client.db();
-    const bucket = new GridFSBucket(database);
 
-    // Find the video file in GridFS
+    const db = client.db();
+    const bucket = new GridFSBucket(db);
+
     const videoFile = await bucket.find({ _id: new ObjectId(videoId) }).toArray();
+
     if (!videoFile || videoFile.length === 0) {
       return res.status(404).json({ error: 'Video not found' });
     }
+
     const file = videoFile[0];
-    console.log(file);
-    // Set the response headers for video streaming
-    res.setHeader('Content-Type', file?.metadata?.contentType);
-    res.setHeader('Content-Length', file?.metadata?.fileSize);
+
+    res.setHeader('Content-Type', file.metadata.contentType);
+    res.setHeader('Content-Length', file.metadata.fileSize);
     res.setHeader('Accept-Ranges', 'bytes');
-    // Check if range headers are present
+
     const range = req.headers.range;
+
     if (range) {
       const positions = range.replace(/bytes=/, '').split('-');
       const start = parseInt(positions[0], 10);
@@ -96,18 +94,12 @@ app.get('/video/:videoId', async (req, res) => {
       res.setHeader('Content-Range', `bytes ${start}-${end}/${file.length}`);
       res.setHeader('Content-Length', chunkSize);
       res.statusCode = 206;
-      console.log(typeof end);
-      // Create a read stream with the range of bytes
+
       const videoStream = bucket.openDownloadStream(new ObjectId(videoId), { start, end });
-      // console.log(res);
-      // Pipe the video stream in chunks
       videoStream.pipe(res);
     } else {
-      // If range headers are not present, stream the entire video
       res.statusCode = 200;
-      // Create a read stream for the entire video file
       const videoStream = bucket.openDownloadStream(new ObjectId(videoId));
-      // Pipe the video stream
       videoStream.pipe(res);
     }
   } catch (error) {
@@ -116,7 +108,6 @@ app.get('/video/:videoId', async (req, res) => {
   }
 });
 
-
 app.listen(PORT, () => {
-    console.log('Listening on port 4000!')
+  console.log(`Server is running on port ${PORT}`);
 });
