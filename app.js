@@ -84,7 +84,7 @@ app.get('/video/:videoId', async (req, res) => {
     res.setHeader('Accept-Ranges', 'bytes');
 
     const range = req.headers.range;
-
+    console.log(range);
     if (range) {
       const positions = range.replace(/bytes=/, '').split('-');
       const start = parseInt(positions[0], 10);
