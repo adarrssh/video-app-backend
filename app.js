@@ -4,7 +4,7 @@ const multer = require('multer');
 const http = require('http')
 const { MongoClient, ObjectId } = require('mongodb');
 const { GridFSBucket } = require('mongodb');
-const PORT = process.env.PORT || 4000;
+const port = process.env.PORT || 3000;
 const url = 'mongodb+srv://adarsh:adarsh@cluster0.o0dnsga.mongodb.net/video-app';
 const app = express();
 const socket = require('socket.io')
@@ -136,6 +136,6 @@ app.get('/video/:videoId', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
