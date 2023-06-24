@@ -9,28 +9,28 @@ const url = 'mongodb+srv://adarsh:adarsh@cluster0.o0dnsga.mongodb.net/video-app'
 const app = express();
 const socket = require('socket.io')
 
-let server = app.listen(4000, ()=>{
-  console.log('server running');
-})
+// let server = app.listen(4000, ()=>{
+//   console.log('server running');
+// })
 
-let io = socket(server,{
-  cors:{
-    origin: 'https://stream-your-video.netlify.app'
-  }
-})
+// let io = socket(server,{
+//   cors:{
+//     origin: 'https://stream-your-video.netlify.app'
+//   }
+// })
 
-// WebSocket connection
-io.on('connection', (socket) => {
-  console.log(`A user connected ${socket.id}`);
-  socket.on('sync', (data) => {
-    console.log('Sync event', data);
-    socket.broadcast.emit('sync', data);
-  });
+// // WebSocket connection
+// io.on('connection', (socket) => {
+//   console.log(`A user connected ${socket.id}`);
+//   socket.on('sync', (data) => {
+//     console.log('Sync event', data);
+//     socket.broadcast.emit('sync', data);
+//   });
 
-  socket.on('disconnect', () => {
-    console.log('A user disconnected');
-  });
-});
+//   socket.on('disconnect', () => {
+//     console.log('A user disconnected');
+//   });
+// });
 
 
 // Create a new MongoClient
@@ -133,6 +133,6 @@ app.get('/video/:videoId', async (req, res) => {
   }
 });
 
-// app.listen(PORT, () => {
-//   console.log(`Server is running on port ${PORT}`);
-// });
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
