@@ -52,6 +52,9 @@ async function connectToDatabase() {
   }
 }
 
+app.get('/', async (req,res)=>{
+  res.status(200).send('home route')
+})
 // Upload video endpoint
 app.post('/upload', upload.single('video'), async (req, res) => {
   await connectToDatabase();
