@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start":"npm i",
+    "start": "npm i",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
@@ -19,7 +19,6 @@
     "gridfs-stream": "^1.1.1",
     "mongoose": "^7.3.0",
     "multer": "^1.4.5-lts.1",
-    "socket.io": "^4.6.2",
     "thumbsupply": "^0.4.0"
   }
 }

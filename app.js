@@ -4,48 +4,9 @@ const multer = require('multer');
 const http = require('http')
 const { MongoClient, ObjectId } = require('mongodb');
 const { GridFSBucket } = require('mongodb');
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 const url = 'mongodb+srv://adarsh:adarsh@cluster0.o0dnsga.mongodb.net/video-app';
 const app = express();
-const socket = require('socket.io')
-
-let server = app.listen(4000, ()=>{
-  console.log('server running');
-})
-
-let io = socket(server,{
-  cors:{
-    origin: 'https://stream-your-video.netlify.app'
-    // origin :'http://localhost:3000'
-  }
-})
-
-// WebSocket connection
-io.on('connection', (socket) => {
-  console.log(`A user connected ${socket.id}`);
-  // Listen for the 'videoPaused' event
-  socket.on('videoPaused', () => {
-    console.log('Video paused');
-    // Broadcast 'videoPaused' event to all connected clients except the sender
-    socket.broadcast.emit('videoPaused');
-  });
-
-  socket.on('videoPlayed', () => {
-    console.log('Video played');
-    // Broadcast 'videoPlayed' event to all connected clients except the sender
-    socket.broadcast.emit('videoPlayed');
-  });
-
-  socket.on('forward video', () => {
-    console.log('forward video');
-    // Broadcast 'videoPlayed' event to all connected clients except the sender
-    socket.broadcast.emit('forward video');
-  });
-  
-  socket.on('disconnect', () => {
-    console.log('A user disconnected');
-  });
-});
 
 
 // Create a new MongoClient
@@ -151,6 +112,47 @@ app.get('/video/:videoId', async (req, res) => {
   }
 });
 
-// app.listen(port, () => {
-//   console.log(`Server is running on port ${port}`);
-// });
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
+
+
+// let server = app.listen(4000, ()=>{
+  //   console.log('server running');
+  // })
+  
+  // let io = socket(server,{
+  //   cors:{
+  //     origin: 'https://stream-your-video.netlify.app'
+  //     // origin :'http://localhost:3000'
+  //   }
+  // })
+  
+  // // WebSocket connection
+  // io.on('connection', (socket) => {
+  //   console.log(`A user connected ${socket.id}`);
+  //   // Listen for the 'videoPaused' event
+  //   socket.on('videoPaused', () => {
+  //     console.log('Video paused');
+  //     // Broadcast 'videoPaused' event to all connected clients except the sender
+  //     socket.broadcast.emit('videoPaused');
+  //   });
+  
+  //   socket.on('videoPlayed', () => {
+  //     console.log('Video played');
+  //     // Broadcast 'videoPlayed' event to all connected clients except the sender
+  //     socket.broadcast.emit('videoPlayed');
+  //   });
+  
+  //   socket.on('forward video', () => {
+  //     console.log('forward video');
+  //     // Broadcast 'videoPlayed' event to all connected clients except the sender
+  //     socket.broadcast.emit('forward video');
+  //   });
+    
+  //   socket.on('disconnect', () => {
+  //     console.log('A user disconnected');
+  //   });
+  // });
+  
+  
