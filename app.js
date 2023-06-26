@@ -2,12 +2,37 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const http = require('http')
+const socketIO = require('socket.io');
 const { MongoClient, ObjectId } = require('mongodb');
 const { GridFSBucket } = require('mongodb');
 const port = process.env.PORT || 4000;
 const url = 'mongodb+srv://adarsh:adarsh@cluster0.o0dnsga.mongodb.net/video-app';
 const app = express();
+const server = http.createServer(app);
+const io = socketIO(server,{
+  cors:{
+    origin:'*'
+  }
+});
 
+server.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
+
+io.on('connection', (socket) => {
+  console.log('A user connected'+socket.id);
+
+  // Handle custom socket events
+  socket.on('customEvent', (data) => {
+    console.log('Received custom event:', data);
+    // Handle the event logic
+  });
+
+  // Handle disconnection
+  socket.on('disconnect', () => {
+    console.log('A user disconnected');
+  });
+});
 
 // Create a new MongoClient
 const client = new MongoClient(url);
@@ -112,9 +137,9 @@ app.get('/video/:videoId', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`Server is running on port ${port}`);
+// });
 
 
 // let server = app.listen(4000, ()=>{
