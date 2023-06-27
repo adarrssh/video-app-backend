@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const http = require('http')
+const path = require('path')
+const fs = require('fs')
 const { MongoClient, ObjectId } = require('mongodb');
 const { GridFSBucket } = require('mongodb');
 const port = process.env.PORT || 4000;
@@ -74,7 +76,14 @@ app.post('/upload-to-localstorage', upload.single('video'), async (req, res) => 
     }
     const originalFileName = videoFile.originalname;
     console.log(originalFileName);
-    const videoPath = path.join(__dirname, 'videos', originalFileName);
+    const videosDirectory = path.join(__dirname, 'videos');
+    const videoPath = path.join(videosDirectory, originalFileName);
+    
+    // Create the 'videos' directory if it doesn't exist
+    if (!fs.existsSync(videosDirectory)) {
+      fs.mkdirSync(videosDirectory);
+    }
+    
     fs.writeFile(videoPath, videoFile.buffer, (error) => {
       if (error) {
         console.error('Error storing video:', error);
@@ -89,6 +98,7 @@ app.post('/upload-to-localstorage', upload.single('video'), async (req, res) => 
     res.status(500).send('Error uploading video');
   }
 });
+
 // Stream video endpoint
 app.get('/video/:videoId', async (req, res) => {
   await connectToDatabase();
