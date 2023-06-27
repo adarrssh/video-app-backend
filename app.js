@@ -152,7 +152,7 @@ app.get('/video/:videoId', async (req, res) => {
 app.get('/stream/:videoId', (req, res) => {
   try {
     const videoId = req.params.videoId;
-    const videoPath = path.join(__dirname, 'video', videoId);
+    const videoPath = path.join(__dirname, 'videos', videoId);
 
     if (fs.existsSync(videoPath)) {
       const stat = fs.statSync(videoPath);
