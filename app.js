@@ -10,6 +10,7 @@ const port = process.env.PORT || 4000;
 const url = 'mongodb+srv://adarsh:adarsh@cluster0.o0dnsga.mongodb.net/video-app';
 const app = express();
 
+const videosFolderPath = path.join(__dirname, 'videos'); // Replace 'videos' with your actual folder name
 
 // Create a new MongoClient
 const client = new MongoClient(url);
@@ -153,7 +154,7 @@ app.get('/stream/:videoId', (req, res) => {
   try {
     const videoId = req.params.videoId;
     const videoPath = path.join(__dirname, 'videos', videoId);
-
+    console.log(videoPath);
     if (fs.existsSync(videoPath)) {
       const stat = fs.statSync(videoPath);
       const fileSize = stat.size;
@@ -182,6 +183,24 @@ app.get('/stream/:videoId', (req, res) => {
   }
 });
 
+
+app.get('/videos', (req, res) => {
+  fs.readdir(videosFolderPath, (err, files) => {
+    if (err) {
+      console.error('Error reading videos folder:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+
+    const videoFiles = files.filter((file) => {
+      const filePath = path.join(videosFolderPath, file);
+      const fileStats = fs.statSync(filePath);
+      return fileStats.isFile();
+    });
+
+    res.json({ videos: videoFiles });
+  });
+});
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
