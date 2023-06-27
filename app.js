@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const http = require('http')
+const fs = require('fs')
+const path = require('path')
 const socketIO = require('socket.io');
 const { MongoClient, ObjectId } = require('mongodb');
 const { GridFSBucket } = require('mongodb');
@@ -22,11 +24,12 @@ server.listen(port, () => {
 io.on('connection', (socket) => {
   console.log('A user connected'+socket.id);
 
-  // Handle custom socket events
-  socket.on('customEvent', (data) => {
-    console.log('Received custom event:', data);
-    // Handle the event logic
-  });
+     socket.on('videoForward', (data) => {
+      console.log('VideoForward'+data);
+      // Broadcast 'videoPlayed' event to all connected clients except the sender
+      socket.broadcast.emit('VideoForward+', data);
+    });
+  
 
   // Handle disconnection
   socket.on('disconnect', () => {
@@ -90,6 +93,30 @@ app.post('/upload', upload.single('video'), async (req, res) => {
   }
 });
 
+app.post('/upload-to-localstorage', upload.single('video'), async (req, res) => {
+  try {
+    const videoFile = req.file;
+    if (!videoFile) {
+      res.status(400).send('No video file provided');
+      return;
+    }
+    const originalFileName = videoFile.originalname;
+    console.log(originalFileName);
+    const videoPath = path.join(__dirname, 'videos', originalFileName);
+    fs.writeFile(videoPath, videoFile.buffer, (error) => {
+      if (error) {
+        console.error('Error storing video:', error);
+        res.status(500).send('Error storing video');
+      } else {
+        console.log('Video stored:', videoPath);
+        res.send('Video uploaded successfully');
+      }
+    });
+  } catch (error) {
+    console.error('Error uploading video:', error);
+    res.status(500).send('Error uploading video');
+  }
+});
 // Stream video endpoint
 app.get('/video/:videoId', async (req, res) => {
   await connectToDatabase();
@@ -133,6 +160,46 @@ app.get('/video/:videoId', async (req, res) => {
     }
   } catch (error) {
     console.error('Error fetching video:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.get('/stream/:videoId', (req, res) => {
+  console.log('stream api');
+  try {
+    const videoId = req.params.videoId;
+    const videoPath = path.join(__dirname, 'videos', videoId);
+
+    if (!fs.existsSync(videoPath)) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+
+    const stat = fs.statSync(videoPath);
+    const fileSize = stat.size;
+
+    const range = req.headers.range;
+    console.log(range);
+    if (range) {
+      const positions = range.replace(/bytes=/, '').split('-');
+      const start = parseInt(positions[0], 10);
+      const end = positions[1] ? parseInt(positions[1], 10) : fileSize - 1;
+      const chunkSize = end - start + 1;
+
+      res.setHeader('Content-Range', `bytes ${start}-${end}/${fileSize}`);
+      res.setHeader('Content-Length', chunkSize);
+      res.statusCode = 206;
+
+      const videoStream = fs.createReadStream(videoPath, { start, end });
+      videoStream.pipe(res);
+    } else {
+      res.statusCode = 200;
+      res.setHeader('Content-Length', fileSize);
+
+      const videoStream = fs.createReadStream(videoPath);
+      videoStream.pipe(res);
+    }
+  } catch (error) {
+    console.error('Error streaming video:', error);
     res.status(500).send('Internal Server Error');
   }
 });
