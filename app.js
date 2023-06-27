@@ -2,40 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const http = require('http')
-const fs = require('fs')
-const path = require('path')
-const socketIO = require('socket.io');
 const { MongoClient, ObjectId } = require('mongodb');
 const { GridFSBucket } = require('mongodb');
 const port = process.env.PORT || 4000;
 const url = 'mongodb+srv://adarsh:adarsh@cluster0.o0dnsga.mongodb.net/video-app';
 const app = express();
-const server = http.createServer(app);
-const io = socketIO(server,{
-  cors:{
-    origin:'*'
-  }
-});
 
-server.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
-
-io.on('connection', (socket) => {
-  console.log('A user connected'+socket.id);
-
-     socket.on('videoForward', (data) => {
-      console.log('VideoForward'+data);
-      // Broadcast 'videoPlayed' event to all connected clients except the sender
-      socket.broadcast.emit('VideoForward+', data);
-    });
-  
-
-  // Handle disconnection
-  socket.on('disconnect', () => {
-    console.log('A user disconnected');
-  });
-});
 
 // Create a new MongoClient
 const client = new MongoClient(url);
@@ -164,49 +136,9 @@ app.get('/video/:videoId', async (req, res) => {
   }
 });
 
-app.get('/stream/:videoId', (req, res) => {
-  console.log('stream api');
-  try {
-    const videoId = req.params.videoId;
-    const videoPath = path.join(__dirname, 'videos', videoId);
-
-    if (!fs.existsSync(videoPath)) {
-      return res.status(404).json({ error: 'Video not found' });
-    }
-
-    const stat = fs.statSync(videoPath);
-    const fileSize = stat.size;
-
-    const range = req.headers.range;
-    console.log(range);
-    if (range) {
-      const positions = range.replace(/bytes=/, '').split('-');
-      const start = parseInt(positions[0], 10);
-      const end = positions[1] ? parseInt(positions[1], 10) : fileSize - 1;
-      const chunkSize = end - start + 1;
-
-      res.setHeader('Content-Range', `bytes ${start}-${end}/${fileSize}`);
-      res.setHeader('Content-Length', chunkSize);
-      res.statusCode = 206;
-
-      const videoStream = fs.createReadStream(videoPath, { start, end });
-      videoStream.pipe(res);
-    } else {
-      res.statusCode = 200;
-      res.setHeader('Content-Length', fileSize);
-
-      const videoStream = fs.createReadStream(videoPath);
-      videoStream.pipe(res);
-    }
-  } catch (error) {
-    console.error('Error streaming video:', error);
-    res.status(500).send('Internal Server Error');
-  }
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
-
-// app.listen(port, () => {
-//   console.log(`Server is running on port ${port}`);
-// });
 
 
 // let server = app.listen(4000, ()=>{
