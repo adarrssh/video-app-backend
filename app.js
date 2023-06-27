@@ -146,6 +146,43 @@ app.get('/video/:videoId', async (req, res) => {
   }
 });
 
+
+
+
+app.get('/stream/:videoId', (req, res) => {
+  try {
+    const videoId = req.params.videoId;
+    const videoPath = path.join(__dirname, 'video', videoId);
+
+    if (fs.existsSync(videoPath)) {
+      const stat = fs.statSync(videoPath);
+      const fileSize = stat.size;
+      const range = req.headers.range || 'bytes=0-';
+      console.log(range);
+      const positions = range.replace(/bytes=/, '').split('-');
+      const start = parseInt(positions[0], 10);
+      const end = positions[1] ? parseInt(positions[1], 10) : fileSize - 1;
+      const chunkSize = end - start + 1;
+
+      res.writeHead(206, {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunkSize,
+        'Content-Type': 'video/mp4',
+      });
+
+      const videoStream = fs.createReadStream(videoPath, { start, end });
+      videoStream.pipe(res);
+    } else {
+      res.status(404).json({ error: 'Video not found' });
+    }
+  } catch (error) {
+    console.error('Error streaming video:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
