@@ -34,6 +34,17 @@ let io = socket(server,{
       socket.broadcast.emit('videoTimeChanged',data)
     })
 
+    socket.on('videoPaused',()=>{
+      console.log('A user paused the video');
+      socket.broadcast.emit('pauseVideo')
+    })
+
+    socket.on('videoResumed',()=>{
+      console.log('A user resumed the video');
+      socket.broadcast.emit('playVideo')
+    })
+
+
     socket.on('disconnect', (socket) => {
       console.log('A user disconnected');
     });
