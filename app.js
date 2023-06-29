@@ -44,6 +44,23 @@ let io = socket(server,{
       socket.broadcast.emit('playVideo')
     })
 
+    socket.on('play',()=>{
+      console.log('video played');
+      socket.broadcast.emit('playBroadcast')
+    })
+
+    socket.on('timeChanged',(time)=>{
+      console.log('video time',time);
+      socket.broadcast.emit('broadcastTime',time)
+    })
+
+
+
+    socket.on('pause',()=>{
+      console.log('video paused');
+      socket.broadcast.emit('pauseBroadcast')
+    })
+
 
     socket.on('disconnect', (socket) => {
       console.log('A user disconnected');
