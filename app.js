@@ -13,7 +13,7 @@ let server = app.listen(4000, ()=>{
 
 let io = socket(server,{
   cors:{
-    origin: 'https://stream-your-video.netlify.app'
+    origin: ['https://stream-your-video.netlify.app','https://stream-dev.netlify.app']
     // origin :'http://localhost:3000'
   }
 })
