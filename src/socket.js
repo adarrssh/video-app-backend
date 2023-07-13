@@ -34,10 +34,10 @@ const configureSocket = (server) => {
       }
     });
 
-    socket.on('videoForward', (data) => {
-      console.log('forward video ' + data);
-      socket.broadcast.emit('videoForward', data);
-    });
+    // socket.on('videoForward', (data) => {
+    //   console.log('forward video ' + data);
+    //   socket.broadcast.emit('videoForward', data);
+    // });
 
     socket.on('videoTimeChanged', (data) => {
       console.log('videoTimeChanged ' + data);
@@ -59,6 +59,11 @@ const configureSocket = (server) => {
       socket.broadcast.to(roomId).emit('playBroadcast');
     });
 
+    socket.on('pause', () => {
+      console.log('video paused');
+      socket.broadcast.emit('pauseBroadcast');
+    });
+    
     socket.on('timeChanged', (obj) => {
       console.log(obj);
       const { roomId, time } = obj;
@@ -66,10 +71,12 @@ const configureSocket = (server) => {
       socket.broadcast.to(roomId).emit('broadcastTime', time);
     });
 
-    socket.on('pause', () => {
-      console.log('video paused');
-      socket.broadcast.emit('pauseBroadcast');
-    });
+
+    socket.on('send-message', (obj)=>{
+      const {roomId,message} = obj
+      console.log('message ',message);
+      socket.broadcast.to(roomId).emit('messageBroadcast',message)
+    })
 
     socket.on('disconnect', () => {
       for (const roomId in rooms) {
