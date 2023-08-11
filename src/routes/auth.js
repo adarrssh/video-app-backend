@@ -4,14 +4,15 @@ const logger = require('../util/logger');
 const User = require('../models/user');
 const multer = require('multer')
 const { createJwtToken } = require('../util/jwt');
+const { MongoClient } = require("mongodb");
 const { GridFsStorage } = require("multer-gridfs-storage")
 const db = require('../db/db')
-const mongoClient = db.getClient()
 const GridFSBucket = require("mongodb").GridFSBucket
 
 const router = express.Router();
 
 const url = 'mongodb+srv://adarsh:BJtJTeNJSb7KvzmU@cluster0.hi5p8dt.mongodb.net/binge-club'
+const mongoClient = new MongoClient(url);
 
 // Create a storage object with a given configuration
 const storage = new GridFsStorage({
