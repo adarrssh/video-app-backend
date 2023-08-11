@@ -1,6 +1,6 @@
 const { MongoClient } = require("mongodb");
 
-const url = 'mongodb+srv://adarsh:adarsh@cluster0.o0dnsga.mongodb.net/binge-club';
+const url = 'mongodb+srv://adarsh:BJtJTeNJSb7KvzmU@cluster0.hi5p8dt.mongodb.net/?retryWrites=true&w=majority/binge-club-database';
 const mongoClient = new MongoClient(url);
 
 const connectDB = async () => {

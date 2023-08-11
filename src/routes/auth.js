@@ -11,7 +11,7 @@ const GridFSBucket = require("mongodb").GridFSBucket
 
 const router = express.Router();
 
-const url = 'mongodb+srv://adarsh:adarsh@cluster0.o0dnsga.mongodb.net/binge-club'
+const url = 'mongodb+srv://adarsh:BJtJTeNJSb7KvzmU@cluster0.hi5p8dt.mongodb.net/binge-club'
 
 // Create a storage object with a given configuration
 const storage = new GridFsStorage({
@@ -121,7 +121,7 @@ router.post('/signup', upload.single('file'),async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ email, password: hashedPassword,filePath });
+    const user = new User({ email, password: hashedPassword });
     await user.save();
   
     logger.info(`Success in Signup`)
