@@ -1,17 +1,13 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
+
 const app = express();
-const authRoutes = require('./routes/auth');
-const streamRoutes = require('./routes/profile');
-const decodeJwt = require('./middleware/decodeJwt')
+const port = process.env.PORT || 4000;
 
 app.use(cors());
-app.use(bodyParser.json()); // Use body-parser middleware to parse JSON bodies
 
-
-app.use('/auth', authRoutes);
-app.use('/user', decodeJwt ,streamRoutes);
-
+app.get('/', async (req, res) => {
+  res.status(200).send('home route');
+});
 
 module.exports = app;
