@@ -5,8 +5,6 @@ const User = require('../models/user');
 const { createJwtToken } = require('../util/jwt');
 
 const router = express.Router();
-
-
   
   // Signup route
   router.post('/signup',async (req, res) => {

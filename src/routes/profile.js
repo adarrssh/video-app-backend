@@ -34,11 +34,13 @@ const upload = multer({ storage })
 
 
 
-router.post("/upload/image",decodeJwt, upload.single("avatar"), async (req, res) => {
+router.post("/upload/image", upload.single("avatar"), async (req, res) => {
   try {
+    console.log('in api call',res.locals);
     const file = req.file;
-    const {email} = req.body
+    const { decodedEmail: email } = res.locals;
     const user = await User.findOne({ email });
+
     const {_id: userId} = user
     if (!user) {
       logger.info('User does not exists')
@@ -51,7 +53,6 @@ router.post("/upload/image",decodeJwt, upload.single("avatar"), async (req, res)
       {new: true}
     )
 
-    console.log(updateUser);
     res.send({
         message: "Uploaded",
         id: file.id,
@@ -59,8 +60,9 @@ router.post("/upload/image",decodeJwt, upload.single("avatar"), async (req, res)
         contentType: file.contentType,
         user: updateUser
     });
+
 } catch (error) {
-    logger.error("Error uploading image:", error);
+    logger.error(error);
     res.status(500).json({ message: "Error uploading image" });
 }
 })
@@ -69,7 +71,7 @@ router.post("/upload/image",decodeJwt, upload.single("avatar"), async (req, res)
 
 router.get("/download/image",decodeJwt ,async (req, res) => {
   try {
-    const {email} = req.body
+    const { decodedEmail: email } = res.locals;
     const user = await User.findOne({ email });
     let {profileImage} = user
 
@@ -111,7 +113,7 @@ router.get("/download/image",decodeJwt ,async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    const { email } = req.body;
+    const { decodedEmail: email } = res.locals;
     console.log(email);
     logger.info('Api call get user details')
     const user = await User.findOne({ email });
@@ -151,7 +153,7 @@ router.post('/', async (req, res) => {
     res.json({ message: 'Success',user});
   } catch (error) {
     logger.error(error);
-    res.status(500).json({ error: 'An error occurred' });
+    res.status(500).json({ error });
   }
 });
 

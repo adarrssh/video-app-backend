@@ -12,7 +12,9 @@ function jwtMiddleware(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, secretKey);
-    req.body.email = decoded.email; 
+    console.log('decode',decoded.email);
+    res.locals.decodedEmail = decoded.email; // Store the decoded email in res.locals
+
     next();
   } catch (error) {
     logger.error(error)
