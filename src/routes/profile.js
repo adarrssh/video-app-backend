@@ -134,12 +134,33 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
+    const { decodedEmail } = res.locals;
+    console.log({decodedEmail})
     const { email,username,password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const updateObject = {
+      username
+    };
+    const userData = await User.findOne({ email:decodedEmail });
+
+    if (!userData) {
+      logger.info('User does not exists')
+      return res.status(401).json({ error: 'User does not exists' });
+    }
+    
+
+    if(password !== userData.password){
+      // const passwordMatch = await bcrypt.compare(password, userData.password);
+        const hashedPassword = await bcrypt.hash(password, 10);
+        updateObject.password = hashedPassword
+    }
+    // if (!passwordMatch) {
+    //   updateObject.password = hashedPassword;
+    // }
+
     logger.info('Api call update user details')
     const user = await User.findOneAndUpdate(
       {email},
-      {$set:{ username, password: hashedPassword} },
+      {$set:updateObject },
       {new:true}
     );
 

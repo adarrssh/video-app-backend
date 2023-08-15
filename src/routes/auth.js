@@ -38,11 +38,13 @@ const router = express.Router();
       const { email, password } = req.body;
       logger.info('Api call Login')
       const user = await User.findOne({ email });
+      console.log(user);
       if (!user) {
         logger.info('User does not exists')
         return res.status(401).json({ error: 'Email or Password is incorrect' });
       }
       const passwordMatch = await bcrypt.compare(password, user.password);
+      console.log({passwordMatch});
       if (!passwordMatch) {
         return res.status(401).json({ error: 'Email or Password is incorrect' });
       }
