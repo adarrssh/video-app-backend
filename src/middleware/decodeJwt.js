@@ -4,7 +4,6 @@ const secretKey = 'your-secret-key';
 
 function jwtMiddleware(req, res, next) {
   const token = req.header('Authorization'); 
-
   if (!token) {
     logger.error('No token provided')
     return res.status(401).json({ error: 'No token provided' });

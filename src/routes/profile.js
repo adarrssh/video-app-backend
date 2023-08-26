@@ -108,6 +108,46 @@ router.get("/download/image",decodeJwt ,async (req, res) => {
       })
     }
   })
+
+  router.post("/download/sender/image",decodeJwt ,async (req, res) => {
+    try {
+      const { email } = req.body;
+      const user = await User.findOne({ email });
+      let {profileImage} = user
+  
+      if(profileImage === 'defaultImage'){
+        profileImage = '1691817779001_Screenshot 2023-08-11 at 2.20.51 PM.png'
+      }
+  
+      const database = mongoClient.db('binge-club')
+      
+      const imageBucket = new GridFSBucket(database, {
+        bucketName: "photos",
+      })
+      
+      let downloadStream = imageBucket.openDownloadStreamByName(
+        profileImage
+        )
+        
+        downloadStream.on("data", function (data) {
+          return res.status(200).write(data)
+        })
+        
+        downloadStream.on("error", function (data) {
+          return res.status(404).send({ error: "Image not found" })
+        })
+        
+        downloadStream.on("end", () => {
+          return res.end()
+        })
+      } catch (error) {
+        console.log(error)
+        res.status(500).send({
+          message: "Error Something went wrong",
+          error,
+        })
+      }
+    })
   
 
 

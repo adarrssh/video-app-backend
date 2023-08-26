@@ -9,29 +9,36 @@ const configureSocket = (server) => {
   });
 
   const rooms = {};
-
   io.on('connection', (socket) => {
     console.log(`A user connected ${socket.id}`);
 
-    socket.on('createRoom', () => {
+    socket.on('createRoom', (userData) => {
+      console.log(userData);
       const roomId = generateRoomId();
       console.log('room id ', roomId);
       socket.join(roomId);
       rooms[roomId] = {
-        users: [socket.id],
+        users: [userData]
       };
-      socket.emit('roomCreated', roomId);
+      console.log('insde createroom ....... ',rooms);
+      console.log('userData ....... ',userData);
+
+      socket.emit('roomCreated', {roomId,users:rooms[roomId].users});
     });
 
-    socket.on('joinRoom', (roomId) => {
+    socket.on('joinRoom', (data) => {
+      const {roomId,userData} = data
       if (rooms[roomId]) {
         socket.join(roomId);
-        rooms[roomId].users.push(socket.id);
-        io.to(roomId).emit('userJoined', socket.id);
-        console.log('user join in ', roomId);
+        rooms[roomId].users.push(userData);
+        io.to(roomId).emit('userJoined', {users:rooms[roomId].users});
+        console.log('user joined in ', roomId);
       } else {
         socket.emit('invalidRoomId');
       }
+      console.log('insde joinroom ....... ',rooms[roomId].users);
+      console.log('userData ....... ',userData);
+
     });
 
     // socket.on('videoForward', (data) => {
