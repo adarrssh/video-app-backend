@@ -20,10 +20,9 @@ const configureSocket = (server) => {
       rooms[roomId] = {
         users: [userData]
       };
-      console.log('insde createroom ....... ',rooms);
-      console.log('userData ....... ',userData);
-
+      
       socket.emit('roomCreated', {roomId,users:rooms[roomId].users});
+
     });
 
     socket.on('joinRoom', (data) => {
@@ -36,7 +35,7 @@ const configureSocket = (server) => {
       } else {
         socket.emit('invalidRoomId');
       }
-      console.log('insde joinroom ....... ',rooms[roomId].users);
+      // console.log('insde joinroom ....... ',rooms[roomId].users);
       console.log('userData ....... ',userData);
 
     });
