@@ -10,10 +10,10 @@ const configureSocket = (server) => {
 
   const rooms = {};
   io.on('connection', (socket) => {
+    console.log({rooms});
     console.log(`A user connected ${socket.id}`);
 
     socket.on('createRoom', (userData) => {
-      console.log(userData);
       const roomId = generateRoomId();
       console.log('room id ', roomId);
       socket.join(roomId);
@@ -31,19 +31,12 @@ const configureSocket = (server) => {
         socket.join(roomId);
         rooms[roomId].users.push(userData);
         io.to(roomId).emit('userJoined', {users:rooms[roomId].users});
-        console.log('user joined in ', roomId);
       } else {
         socket.emit('invalidRoomId');
       }
-      // console.log('insde joinroom ....... ',rooms[roomId].users);
-      console.log('userData ....... ',userData);
 
     });
 
-    // socket.on('videoForward', (data) => {
-    //   console.log('forward video ' + data);
-    //   socket.broadcast.emit('videoForward', data);
-    // });
 
     socket.on('videoTimeChanged', (data) => {
       console.log('videoTimeChanged ' + data);
@@ -71,7 +64,6 @@ const configureSocket = (server) => {
     });
     
     socket.on('timeChanged', (obj) => {
-      console.log(obj);
       const { roomId, time } = obj;
       console.log('video time', time);
       socket.broadcast.to(roomId).emit('broadcastTime', time);
