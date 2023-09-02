@@ -53,7 +53,7 @@ router.post("/upload/image", upload.single("avatar"), async (req, res) => {
       {new: true}
     )
 
-    res.send({
+    res.status(200).send({
         message: "Uploaded",
         id: file.id,
         name: file.filename,
